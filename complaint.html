@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HostelHub - Premium Management</title>
+    <!-- CACHE BUSTING v=3 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-building"></i> Hostel<span style="color:var(--primary)">Hub</span></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            {% if session.get('user_id') %}
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('profile') }}">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}" class="btn-logout">Logout</a></li>
+            {% else %}
+            <li><a href="{{ url_for('login') }}" class="btn-login">Login / Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2024 HostelHub. Premium Hostel Management System.</p>
+    </footer>
+
+    <!-- Chatbot Widget: VISIBLE ONLY TO STUDENT -->
+    {% if session.role == 'student' %}
+    <button class="chatbot-toggler" onclick="toggleChat()">
+        <i class="fas fa-comment-dots"></i>
+    </button>
+
+    <div class="chatbot-window" id="chatWindow">
+        <div class="chat-header">
+            <span><i class="fas fa-robot"></i> HostelHub Assistant</span>
+            <span style="cursor:pointer; opacity: 0.8;" onclick="toggleChat()">&times;</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-msg chat-bot-msg">
+                Hello! 👋 <br>I'm here to help. <br>Ask me about: <br>• How to file a complaint <br>• Mess timings <br>•
+                WiFi issues
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="handleEnter(event)">
+            <button class="btn" style="padding: 0.5rem 0.8rem; border-radius: 6px;" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CACHE BUSTING v=3 -->
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=3"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

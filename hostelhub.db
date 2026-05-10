@@ -1,0 +1,68 @@
+import sqlite3
+import os
+
+DB_NAME = 'hostelhub.db'
+
+def get_db_connection():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
+    c = conn.cursor()
+
+    # Users Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            role TEXT NOT NULL CHECK(role IN ('student', 'warden', 'hod', 'principal')),
+            room_number TEXT,
+            phone TEXT
+        )
+    ''')
+
+    # Complaints Table
+    # status: 'pending', 'escalated', 'resolved'
+    # current_handler_role: 'warden', 'hod', 'principal' (indicates who needs to act)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS complaints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            student_name TEXT NOT NULL,
+            title TEXT NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            current_handler_role TEXT NOT NULL DEFAULT 'warden',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolved_at TIMESTAMP,
+            FOREIGN KEY (student_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Complaint Responses/Actions Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS complaint_responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            complaint_id INTEGER NOT NULL,
+            responder_role TEXT NOT NULL,
+            message TEXT NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (complaint_id) REFERENCES complaints (id)
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+    print("Database initialized successfully.")
+
+if __name__ == '__main__':
+    if not os.path.exists(DB_NAME):
+        init_db()
+    else:
+        print("Database already exists.")

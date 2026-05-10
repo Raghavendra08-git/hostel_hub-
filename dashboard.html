@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <a href="{{ url_for('dashboard') }}"
+        style="color: var(--text-gray); text-decoration: none; margin-bottom: 1rem; display: inline-block;">&larr; Back
+        to Dashboard</a>
+
+    <div class="dashboard-grid">
+        <!-- Main Complaint Info -->
+        <div class="card" style="flex: 2;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <h2 style="margin-bottom: 0.5rem;">{{ complaint.title }}</h2>
+                    <span class="badge badge-{{ complaint.status }}">{{ complaint.status|upper }}</span>
+                    <span style="color: var(--text-gray); font-size: 0.9rem; margin-left: 1rem;">Category: {{
+                        complaint.category }}</span>
+                </div>
+                {% if session.role != 'student' and complaint.status != 'resolved' %}
+                <div style="display: flex; gap: 0.5rem;">
+                    <!-- Escalate Button -->
+                    {% if (session.role == 'warden' and complaint.current_handler_role == 'warden') or
+                    (session.role == 'hod' and complaint.current_handler_role == 'hod') %}
+                    <form action="{{ url_for('escalate_complaint', id=complaint.id) }}" method="POST">
+                        <button type="submit" class="btn btn-warning">Escalate &uarr;</button>
+                    </form>
+                    {% endif %}
+
+                    <!-- Resolve Button -->
+                    {% if session.role == complaint.current_handler_role %}
+                    <form action="{{ url_for('resolve_complaint', id=complaint.id) }}" method="POST">
+                        <button type="submit" class="btn btn-success">Resolve &check;</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <p style="line-height: 1.6; margin-bottom: 2rem; color: #e2e8f0;">{{ complaint.description }}</p>
+
+            <div style="border-top: var(--glass-border); padding-top: 1rem;">
+                <h4 style="margin-bottom: 1rem;">Timeline / Responses</h4>
+
+                {% if responses %}
+                {% for r in responses %}
+                <div
+                    style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid var(--primary);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <strong>{{ r.responder_role|capitalize }}</strong>
+                        <span style="font-size: 0.8rem; color: var(--text-gray);">{{ r.timestamp[:16] }}</span>
+                    </div>
+                    <p>{{ r.message }}</p>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="color: var(--text-gray);">No responses yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="card" style="flex: 1; height: fit-content;">
+            <h3>Details</h3>
+            <ul style="list-style: none; color: var(--text-gray);">
+                <li style="margin-bottom: 0.5rem;"><strong>Student:</strong> {{ complaint.student_name }}</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Created:</strong> {{ complaint.created_at[:16] }}</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Current Handler:</strong> {{
+                    complaint.current_handler_role|capitalize }}</li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
